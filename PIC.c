@@ -10,32 +10,36 @@ void PIC_sendEOI(unsigned char irq)
 	outb(PIC1_COMMAND,PIC_EOI);
 }
 
-void PIC_remap(uint32_t offset1, uint32_t offset2)
+void PIC_remap(uint64_t offset1, uint64_t offset2)
 {
 	uint8_t a1, a2 = 0;
- 
-	a1 = inb(PIC1_DATA);                        // save masks
+    printf("Fine");
+	a1 = inb(PIC1_DATA);
+    printf("Fine");                       // save masks
 	a2 = inb(PIC2_DATA);
- 
+    printf("Fine");
 	outb(PIC1_COMMAND, 0x11);  // starts the initialization sequence (in cascade mode)
-
+    printf("Fine");
 	outb(PIC2_COMMAND, 0x11);
-
+printf("Fine");
 	outb(PIC1_DATA, offset1);                 // ICW2: Master PIC vector offset
-
+printf("Fine");
 	outb(PIC2_DATA, offset2);                 // ICW2: Slave PIC vector offset
-
+printf("Fine");
 	outb(PIC1_DATA, 4);                       // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
-
+printf("Fine");
 	outb(PIC2_DATA, 2);                       // ICW3: tell Slave PIC its cascade identity (0000 0010)
-
+printf("Fine");
  
 	outb(PIC1_DATA, ICW4_8086);
-
+printf("Fine");
 	outb(PIC2_DATA, ICW4_8086);
- 
-	outb(PIC1_DATA, a1);   // restore saved masks.
+ printf("Fine");
+	outb(PIC1_DATA, a1); 
+    printf("Fine");  // restore saved masks.
 	outb(PIC2_DATA, a2);
+    printf("Fine and Done!");
+    
 }
 /*void PIC_disable()
 {
@@ -46,11 +50,11 @@ void PIC_remap(uint32_t offset1, uint32_t offset2)
 
 void PIC_SetHandlers()
 {
-    idt_set_handler(0x20, IRQ_HandleTimer);
+    
 }
 
 void IRQ_maskall() {
-  for (int i = 0; i < 16; i++) IRQ_clear_mask(i);
+  for (int i = 0; i < 16; i++) IRQ_set_mask(i);
 }
 
 void IRQ_enable_masks()
@@ -62,8 +66,9 @@ void IRQ_enable_masks()
 void PICInit()
 {
     PIC_SetHandlers();
-    PIC_remap(0x20,0x28);
+    //PIC_remap(0x20,0x28);
     IRQ_enable_masks();
+    
 }
 void IRQ_set_mask(uint8_t IRQline) {
     uint16_t port;
@@ -82,8 +87,9 @@ void IRQ_set_mask(uint8_t IRQline) {
 void IRQ_clear_mask(uint8_t IRQline) {
     uint16_t port;
     uint8_t value;
- 
+
     if(IRQline < 8) {
+        printf("IRQLine: %d", IRQline);
         port = PIC1_DATA;
     } else {
         port = PIC2_DATA;

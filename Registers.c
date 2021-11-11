@@ -1,18 +1,8 @@
 #include "Registers.h"
 
-struct Registers current = { 0 };
+interrupt_registers current = { 0 };
 
-void SaveConInt();
-
-void SaveConInfo(struct Registers *reg)
+interrupt_registers GetRegs()
 {
-	memcpy(&current, reg, sizeof(struct Registers));
-}
-
-//extern void load_current(void);
-
-struct Registers GetRegisters()
-{
-	//load_current();
-	return current;
+	
 }

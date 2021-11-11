@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "libc/stdio.h"
+#include "Timer.h"
 #include "Registers.h"
 
 #define ATTR_RING0   (0x00)
@@ -24,8 +25,8 @@ typedef struct IDTDescr{
 
 struct IDTPointer
 {
-    uint16_t base;
-    uint64_t limit;
+    uint16_t size;
+    uint64_t addr;
 } __attribute__((packed));
 
 static struct IDTDescr entries[256] = {0};
@@ -34,10 +35,10 @@ static struct IDTPointer idtptr = {0};
 extern void* isr_stub_table[];
  
 void idt_init() {
-    idtptr.base = (uint16_t)sizeof(struct IDTDescr) * 256 - 1;
-    idtptr.limit = (uintptr_t)&entries[0];
+    idtptr.size = (uint16_t)sizeof(entries) - 1;
+    idtptr.addr = &entries;
  
-    for (uint8_t vector = 0; vector < 32; vector++) {
+    for (uint64_t vector = 0; vector < 256; vector++) {
         idt_set_descriptor(vector, isr_stub_table[vector], 0x8E);
     }
  
@@ -65,7 +66,7 @@ void idt_init() {
 }*/
 
 //__attribute__((noreturn))
-void exception_handler(void);
+void exception_handler(interrupt_registers *regs);
 const char *exception_str[] = {
 "Divide By Zero",
 "Debug",
@@ -90,12 +91,24 @@ const char *exception_str[] = {
 "Virtualization",
 "Security Exception"
 };
-void exception_handler() {
-    printf("Exception caught!");
-    asm volatile ("cli; hlt");
+void exception_handler(interrupt_registers *regs) {
+    if(regs->int_no <= 31)
+    {
+        //printf("Exception!: %s RIP: %x", exception_str[regs->error_code], regs->rip);
+        asm volatile ("cli; hlt");
+    }
+    else
+    {
+        switch(regs->int_no)
+        {
+            case 0x20:
+                IRQ_HandleTimer();
+                break;
+        }
+    }
 }
 
-void idt_set_descriptor(uint8_t vector, void* isr, uint8_t flags) {
+void idt_set_descriptor(uint64_t vector, void* isr, uint8_t flags) {
     struct IDTDescr* descriptor = &entries[vector];
  
     descriptor->isr_low        = (uint64_t)isr & 0xFFFF;
@@ -107,11 +120,6 @@ void idt_set_descriptor(uint8_t vector, void* isr, uint8_t flags) {
     descriptor->reserved       = 0;
 }
 
-void idt_set_handler(uint8_t index, void(*handler)())
-{
-    idt_set_descriptor(index, handler, ATTR_INTR | ATTR_RING0 | ATTR_PRESENT);
-}
-
 void IDTCommonHandler0();
 void IDTCommonHandler1();
 void IDTCommonHandler2();
@@ -119,7 +127,7 @@ void IDTCommonHandler3();
 void IDTCommonHandler4();
 void IDTCommonHandler5();
 void IDTCommonHandler6();
-void IDTCommonHandler7();
+void IDTCommonHandler7(); 
 void IDTCommonHandler8();
 void IDTCommonHandler9();
 void IDTCommonHandler10();

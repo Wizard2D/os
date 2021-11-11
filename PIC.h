@@ -33,7 +33,7 @@
 #define PIC_READ_ISR                0x0b    /* OCW3 irq service next CMD read */	/* Special fully nested (not) */
 
 void PIC_sendEOI(unsigned char irq);
-void PIC_remap(uint32_t offset1, uint32_t offset2); // Offset1 -> 0x20, Offset2 -> 0x28.
+void PIC_remap(uint64_t offset1, uint64_t offset2); // Offset1 -> 0x20, Offset2 -> 0x28.
 void IRQ_set_mask(unsigned char IRQline);
 void IRQ_clear_mask(unsigned char IRQline);
 void PICInit();

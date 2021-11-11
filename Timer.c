@@ -1,7 +1,5 @@
 #include "Timer.h"
 
-countedTime = 0;
-
 void IRQ_HandleTimer()
 {
     countedTime++;
